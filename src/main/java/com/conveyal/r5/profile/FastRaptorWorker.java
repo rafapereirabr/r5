@@ -670,6 +670,10 @@ public class FastRaptorWorker {
                 ) {
                     int boardTime = -1;
                     int boardStopPositionInPattern = -1;
+                    // The random offset depends only on the trip and frequency entry, not on the stop, so look it up
+                    // once per entry instead of once per updated stop (this map lookup dominated frequency profiles).
+                    final int offset = (frequencyBoardingMode == MONTE_CARLO)
+                            ? offsets.getOffsetSeconds(schedule, frequencyEntryIdx) : -1;
 
                     // Scan down the stops in the pattern, boarding trips in the pattern when possible.
                     // TODO factor out some of this scanning loop body into a method for clarity.
@@ -707,7 +711,6 @@ public class FastRaptorWorker {
                             //  this looks like a good candidate for polymorphism (board time strategy passed in).
                             //  The offset could be looked up by the getDepartureTime method itself, not passed in.
                             if (frequencyBoardingMode == MONTE_CARLO) {
-                                int offset = offsets.getOffsetSeconds(schedule, frequencyEntryIdx);
                                 newBoardingDepartureTimeAtStop = getRandomFrequencyDepartureTime(
                                         schedule,
                                         stopPositionInPattern,
